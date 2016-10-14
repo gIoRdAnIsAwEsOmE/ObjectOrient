@@ -1,0 +1,128 @@
+<html>
+	<head>
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+	</head>
+	<body>
+		<br>
+		Book: <input type="text" id="book"/> <br>
+		Author: <input type="text" id="bookauthor"/> <br>
+		Price: <input type="text" id="bookprice"/> <br>
+		<button onclick="submitBook();">Submit Book</button> <br>
+		<br>
+		Library <input type="text" id="library"/> <br>
+		Place <input type="text" id="libraryplace"/> <br>
+		Books <input type="text" id="librarybooks"/> <br>
+		<button onclick="submitLibrary();">Submit Library</button>
+		<br>
+		<button onclick="output();">UpdateList</button>
+		<br>
+		<span id="libraryoutput">LIBRARY <br></span>
+		<br>
+		<span id="bookoutput">BOOK<br><br></span>
+		
+	</body>
+	
+	<script src="https://cloudboost.io/js-sdk/cloudboost.js"></script>
+	<script>
+	CB.CloudApp.init('njoumzczehoq', 'b7cc60b7-a1ad-4a0e-8d1c-aceab6dcb4f4');
+	let thelibrary = new CB.CloudObject("Library");
+	let thebooks = new CB.CloudObject("Book");
+		
+	class Library {
+		constructor(name, place) {
+			this._name = name;
+			this._place = place;
+			this._books = [];
+			thelibrary.set("library", this._name);
+			thelibrary.set("libraryplace", this._place);
+			thelibrary.save({
+				success : (res) => {
+					console.log(res);
+				}	
+			});
+	
+		}
+	}
+	class Book {
+		constructor(name, author, price, bool) {
+			let thelibrary = thebooks;
+			this._name = name;
+			this._author = author;
+			this._price = price;
+			console.log(`${name} ${author} ${price}`);
+			if(bool){
+				thelibrary.set("book", this.name);
+				thelibrary.set("bookauthor", this.author);
+				thelibrary.set("bookprice", this.price);
+				thelibrary.save({
+					success: (res) => {
+						console.log(res);
+					}
+				});
+			}else {
+				console.log("Did nothing");
+			}
+		}
+		get name (){
+			return this._name;
+		}
+		
+		get author (){
+			return this._author;
+		}
+		get price() {
+			return this._price;
+		}
+	}
+	function submitBook() {
+		let name = $("#book").val();
+		let author = $("#bookauthor").val();
+		let price = $("#bookprice").val();
+		console.log(`${name} ${author} ${price}`);
+		var newbook = new Book(name, author, price);
+		console.log(newbook);
+	}
+	function submitLibrary () {
+		let name = $("#library").val();
+		let author = $("#libraryplace").val();
+		var newlibrary = new Library(name, author);
+		console.log(newlibrary);
+	}
+	
+	function output(){
+		let booksquery = new CB.CloudQuery("Book");
+		let libraryquery = new CB.CloudQuery("Library");
+		queries(booksquery);
+		queries(libraryquery);
+		let output = $("#bookoutput");
+		output.html("");
+		output = $("#libraryoutput");
+		output.html("");
+	}
+	function queries(query){
+		query.find({
+			success: (results) => {
+				for(let r in results){
+					const result = results[r];
+					console.log(result);
+					/*const tablename = result.document._tableName;
+					const tt = tablename.toLowerCase();
+					let output = $("#" + tt + "output");
+					var list;
+					const d = result.document;
+					if(tt == "library"){
+						list = [tt, tt + "place"];
+						output.html(output.html() + "---------------------------------------"  + "<br>" + d.library);
+						output.html(output.html() + "<br>" + d.libraryplace + "<br>");
+					}else if(tt == "book"){
+						list = [tt, tt + "author", tt + "price"];
+						output.html(output.html() + "---------------------------------------"  + "<br>" + d.book);
+						output.html(output.html() + "<br>" + d.bookauthor);
+						output.html(output.html() + "<br>" + d.bookprice + "<br>");
+					}*/
+				}
+			}
+		});
+	}
+	</script>
+</html>

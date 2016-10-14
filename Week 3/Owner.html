@@ -1,0 +1,136 @@
+<html>
+		<head>
+			<style>
+				.invis{
+					visibility: hidden;
+				}
+			</style>
+		</head>
+		<body>
+			<div id="holder">Password:<input id="pass"></input></div>
+			
+			<div id="visibility" class="invis">
+			Store: <br>
+			Name: <input id="storename"/> <br>
+			Status: <input id="storestatus"/> <br>
+			Place: <input id="storeplace"/> <br>
+			
+			<button onclick="submit('Store');">Store</button> <br>
+			Candy: <br>
+			Name: <input id="candyname"/> <br>
+			Cost: <input id="candycost"/> <br>
+			Expiration <input id="candyexp"/> <br>
+			
+			<button onclick="submit('Candy');">Candy</button> <br>
+			Assign Candy to each Store
+			<br>			
+			Store: <select id="dropStore"></select>
+			<br>
+			Candy: <select id="dropCandy"></select><br>
+			<button onclick="bound();">Bind</button>
+			</div>
+			
+			
+		</body>
+		<script src="https://code.jquery.com/jquery-3.1.0.js"></script>
+		<script src="https://cloudboost.io/js-sdk/cloudboost.js"></script>
+		<script src="Store.js"></script>
+		<script src="Candy.js"></script>
+		<script src="StoreCandy.js"></script>
+		<script>
+			function nextID(querystr){
+				let query = CB.CloudQuery(querystr);
+				query.find({
+					success : (res) => {
+						let list = [];
+						for (let r of res){
+							if(querystr == "Store"){
+								list.push(r.document.store_id);
+							}else if (querystr == "Candy"){
+								list.push(r.document.candy_id);
+							}
+							return Math.max.apply( Math, list);
+						}
+					}
+				});
+			}
+			function submit(which){
+				let inputs = $("input");
+				if(inputs.text() === ""){
+					console.log("Nada");
+				}else{
+					if(which === "Store"){
+						let newstore = new Store($("#storename").text(), $("#storeplace").text(), $("#storestatus").text(), nextID(which). true);
+						console.log(newstore.name + ": " + "newstore.id");
+					}else if(which === "Candy"){
+						let newcandy = new Candy($("#candyname"), $("#candycost"), $("candyexp"), nextID(which), true);
+						console.log(`${newcandy.name}: ${newcandy.id}`);
+					}
+				}
+				
+			}
+			
+			function dropDown(cbobj){
+				let jqueryid = "drop" + cbobj;
+				let s = $("#" + jqueryid);
+				let query = new CB.CloudQuery(cbobj);
+				query.find({
+					success : (res) => {
+						for (let r of res) {
+							r = r.document;
+							s.html(`${s.html()} + <option>${r.name}</option>`);
+						}
+					}
+				});
+				
+				
+			}
+			
+			function bound(){
+				let selstore = $("#dropStore :selected");
+				let selcandy = $("#dropCandy :selected");
+				
+				let storeid, candyid;
+				
+				let storequery = new CB.CloudQuery("Store");
+				let candyquery = new CB.CloudQuery("Candy");
+				
+				//Find storeid
+				//I hate callbacks with jquery :(
+				storequery.equalTo('name', selstore.text());
+				storequery.find({
+					success : (res) => {
+						for (let r of res){
+							r = r.document;
+							storeid = r.store_id;
+						}
+						candyquery.equalTo('name', selcandy.text());
+						candyquery.find({
+							success : (facts) => {
+								for (let r of facts) {
+									r = r.document;
+									candyid = r.candy_id;
+									//This is such a mess this is terrible
+								}
+								let newbind = new StoreCandy(null, candyid, storeid);
+								newbind.setBounds();
+							}	
+						});
+					}
+				});
+				
+				
+				
+			}
+			dropDown("Store");
+			dropDown("Candy");
+			$("#pass").on("change keyup paste", function (){
+				let password = $("#pass").val();
+				if (password === ":Q"){
+					$("#visibility").removeClass("invis");
+					$("#holder").addClass("invis");
+				}
+			});
+			
+		</script>>
+</html>
